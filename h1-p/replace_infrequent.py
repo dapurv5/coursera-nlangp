@@ -5,14 +5,18 @@ __date__ ="$Mar 20, 2013"
 
 import sys
 
-
 """
 Reads an input training file and computes frequency for each
 word. Then in a second run replaces each infrequent word i.e.
 words with frequencies less than 5 by a common word _RARE_
 """
+THRESHOLD_FREQUENCY = 5
+RARE_SYMBOL = "_RARE_"
 
 def compute_frequencies(filename):
+    """
+    Computes frequencies for each word in the input file.
+    """
     freq = {}
     file = open(filename)
     for line in file:
@@ -25,6 +29,7 @@ def compute_frequencies(filename):
     file.close()
     return freq
 
+
 def rewrite_file(writer, filename):
     freq = compute_frequencies(filename)
     file = open(filename)
@@ -35,8 +40,8 @@ def rewrite_file(writer, filename):
         if line == None:
             continue
 
-        if freq[word] < 5:
-            writer.write("%s %s\n" %("_RARE_", str[1]))
+        if freq[word] < THRESHOLD_FREQUENCY:
+            writer.write("%s %s\n" %(RARE_SYMBOL, str[1]))
         else:
             writer.write("%s" %line)
     file.close()
@@ -48,7 +53,8 @@ def usage():
     gene tagged training input file where infrequence words have been
     replaced by _RARE_
     """
-
+    
+    
 if __name__ == "__main__":
 
     if len(sys.argv) !=2: #Expect exactly one argument the training file
