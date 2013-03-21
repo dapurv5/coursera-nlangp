@@ -36,7 +36,7 @@ public class HMM {
   }
 
   private void readCounts() throws IOException{
-    InputStream in = getClass().getResourceAsStream("./h1-p/gene-rare.counts");
+    InputStream in = getClass().getResourceAsStream("gene-rare.counts");
     BufferedReader reader = new BufferedReader(new InputStreamReader(in));
     String line;
     while((line = reader.readLine()) != null){
@@ -58,6 +58,16 @@ public class HMM {
 //    System.out.println(((double)(int)emissionCounts.get(tag, word))/((double)(int)tagCounts.get(tag)));
     computeEmissionProbabilities();
 //    System.out.println(emissionProbabilities.get(word, tag));
+    /////
+//    System.out.println(e("BACKGROUND", tags[0]));
+//    System.out.println(e("BACKGROUND", tags[1]));
+//    System.out.println("emissionCount(I-GENE -> BACKGROUND)"+emissionCounts.get("I-GENE", "BACKGROUND"));
+//    System.out.println("tagCount(I-GENE)"+tagCounts.get("I-GENE"));
+//    System.out.println("emissionCount(O -> BACKGROUND)"+emissionCounts.get("O", "BACKGROUND"));
+//    System.out.println("tagCount(O)"+tagCounts.get("O"));
+
+    reader.close();
+    in.close();
   }
 
   private void computeEmissionProbabilities(){
@@ -67,6 +77,14 @@ public class HMM {
       String x = (String)key.getKey(1); //the word
       double prob = ((double)(int)emissionCounts.get(y, x))/((double)(int)tagCounts.get(y));
       emissionProbabilities.put(x, y, prob);
+      
+      //Fill zero corresponding to the remaining tags if they are not already present.
+      for(String tag: tags){
+        if(tag.equals(y)){continue;}
+        if(emissionCounts.get(tag, x) == null){
+          emissionProbabilities.put(x, tag, 0.0d);
+        }
+      }
     }
   }
 
@@ -80,6 +98,8 @@ public class HMM {
     if (emissionProbabilities.containsKey(x, y)){
       return (double)emissionProbabilities.get(x, y);
     }
+    //x is a new word because if you would hv seen that word
+    //you would have filled all tags for that word
     return (double)emissionProbabilities.get("_RARE_", y);
   }
 
@@ -97,6 +117,10 @@ public class HMM {
         writer.println();
         continue;
       }
+//      if(word.length() == 1){
+//        writer.println(word+" "+tags[0]);
+//        continue;
+//      }
       String maxTag = tags[0];
       double maxEmissionProb = Double.MIN_VALUE;
       for(String tag:tags){
@@ -107,6 +131,7 @@ public class HMM {
       }
       writer.println(word+" "+maxTag);
     }
+    writer.close();
   }
 
   public static void main(String[] args) throws IOException {
@@ -114,8 +139,9 @@ public class HMM {
     HMM hmm = new HMM(filename);
     hmm.train();
 
-    InputStream devIn = hmm.getClass().getResourceAsStream("./h1-p/gene.dev");
+    InputStream devIn = hmm.getClass().getResourceAsStream("gene.dev");
     hmm.classify(devIn);
+    devIn.close();
   }
 
 }
