@@ -22,10 +22,9 @@ def compute_frequencies(filename):
     for line in file:
         str  = line.strip().split(" ")
         word = str[0]
-        if(word in freq):
-            freq[word] = freq[word] + 1
-        else:
+        if(word not in freq):
             freq[word] = 0
+        freq[word] = freq[word] + 1
     file.close()
     return freq
 

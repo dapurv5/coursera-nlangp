@@ -1,106 +1,94 @@
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
+import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.collections.keyvalue.MultiKey;
 import org.apache.commons.collections.map.MultiKeyMap;
 
 /**
+ * Solution for Part-1 of the assignment
  * Estimates the parameters for Trigram Hidden Markov model.</br>
  */
 public class HMM {
 
   private final static String WORDTAG = "WORDTAG";
   private final static String[] tags = {"O", "I-GENE"};
-  private final PrintWriter writer;
 
-  Map<String, Integer> wordCounts;
-  Map<String, Integer> tagCounts;
-  MultiKeyMap emissionCounts;
-  MultiKeyMap emissionProbabilities;
+  //Readers , Writers to the training, test and the output file respectively
+  private final BufferedReader trainingReader;
+  private final BufferedReader testReader;
+  private final PrintWriter    resultsWriter;
 
-  public HMM(String filename) throws FileNotFoundException{
-    wordCounts = new HashMap<String, Integer>();
-    tagCounts = new HashMap<String, Integer>();
-    emissionCounts = new MultiKeyMap();
-    emissionProbabilities = new MultiKeyMap();
-    
-    writer = new PrintWriter(new File(filename));
+  //Data structures to hold count and probabilities
+  private final Map<String, Integer> tagCnts       = new HashMap<String, Integer>();
+  private final MultiKeyMap          emissionCnts  = new MultiKeyMap();
+  private final MultiKeyMap          emissionProbs = new MultiKeyMap();
+  private final List<String>         allwords      = new LinkedList<String>();
+
+  public HMM(String trainingFile, String testFile, String outputFile){
+    try{
+      trainingReader = new BufferedReader(new FileReader(new File(trainingFile)));
+      testReader     = new BufferedReader(new FileReader(new File(testFile)));
+      resultsWriter  = new PrintWriter(new File(outputFile));
+
+    }catch(FileNotFoundException e){
+      System.err.println("COULD NOT FIND FILE ...");
+      e.printStackTrace();
+      throw new RuntimeException(e);
+    }
   }
 
   private void readCounts() throws IOException{
-    InputStream in = getClass().getResourceAsStream("gene-rare.counts");
-    BufferedReader reader = new BufferedReader(new InputStreamReader(in));
     String line;
-    while((line = reader.readLine()) != null){
+    while((line = trainingReader.readLine()) != null){
       String[] str = line.split(" ");
       if(str[1].equals(WORDTAG)){
         String word    = str[3];
         String tag     = str[2];
         int freq       = Integer.parseInt(str[0]);
-        emissionCounts.put(tag, word, freq);
+        emissionCnts.put(tag, word, freq);
+        allwords.add(word);
 
-        Integer cntTag = (tagCounts.get(tag) == null)?0 : tagCounts.get(tag);
-        tagCounts.put(tag, cntTag+freq);
+        Integer cntTag = (tagCnts.get(tag) == null)?0 : tagCnts.get(tag);
+        tagCnts.put(tag, cntTag+freq);
       }
     }
-//    String tag = tags[1];
-//    String word = "_RARE_";
-//    System.out.println(emissionCounts.get(tag, "_RARE_"));
-//    System.out.println(tagCounts.get(tag));
-//    System.out.println(((double)(int)emissionCounts.get(tag, word))/((double)(int)tagCounts.get(tag)));
     computeEmissionProbabilities();
-//    System.out.println(emissionProbabilities.get(word, tag));
-    /////
-//    System.out.println(e("BACKGROUND", tags[0]));
-//    System.out.println(e("BACKGROUND", tags[1]));
-//    System.out.println("emissionCount(I-GENE -> BACKGROUND)"+emissionCounts.get("I-GENE", "BACKGROUND"));
-//    System.out.println("tagCount(I-GENE)"+tagCounts.get("I-GENE"));
-//    System.out.println("emissionCount(O -> BACKGROUND)"+emissionCounts.get("O", "BACKGROUND"));
-//    System.out.println("tagCount(O)"+tagCounts.get("O"));
-
-    reader.close();
-    in.close();
+    trainingReader.close();
   }
 
   private void computeEmissionProbabilities(){
-    for(Object k: emissionCounts.keySet()){
-      MultiKey key = (MultiKey)k;
-      String y = (String)key.getKey(0); //the tag
-      String x = (String)key.getKey(1); //the word
-      double prob = ((double)(int)emissionCounts.get(y, x))/((double)(int)tagCounts.get(y));
-      emissionProbabilities.put(x, y, prob);
-      
-      //Fill zero corresponding to the remaining tags if they are not already present.
-      for(String tag: tags){
-        if(tag.equals(y)){continue;}
-        if(emissionCounts.get(tag, x) == null){
-          emissionProbabilities.put(x, tag, 0.0d);
+    for(String x: allwords){
+      for(String y:tags){
+        if(emissionCnts.get(y, x) == null){
+          emissionProbs.put(x, y, 0.0d);
+        }else{
+          double cnt_yx = ((double)(int)emissionCnts.get(y, x));
+          double cnt_y  = ((double)(int)tagCnts.get(y)); 
+          double prob = cnt_yx / cnt_y;
+          emissionProbs.put(x, y, prob);
         }
       }
     }
   }
 
   /**
-   * Returns the precomputed emission probabilities.
+   * Returns the pre-computed emission probabilities.
    * @param y the tag  {0, I-GENE}
-   * @param x the word {Galphao, TFII, ... etc}
+   * @param x the word {TFII, ... etc}
    */
   public double e(String x, String y){
-//    System.out.println("Called e("+x+", "+y+")");
-    if (emissionProbabilities.containsKey(x, y)){
-      return (double)emissionProbabilities.get(x, y);
+    if (emissionProbs.containsKey(x, y)){
+      return (double)emissionProbs.get(x, y);
     }
-    //x is a new word because if you would hv seen that word
-    //you would have filled all tags for that word
-    return (double)emissionProbabilities.get("_RARE_", y);
+    //x is a new word.
+    return (double)emissionProbs.get("_RARE_", y);
   }
 
   public void train() throws IOException{
@@ -108,40 +96,44 @@ public class HMM {
     computeEmissionProbabilities();
   }
 
-  public void classify(InputStream in) throws IOException{
-    BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+  public void classify() throws IOException{
     String line;
-    while((line = reader.readLine()) != null){
+    while((line = testReader.readLine()) != null){
       String word = line.trim();
       if(word.equals("")){
-        writer.println();
+        resultsWriter.println();
         continue;
       }
-//      if(word.length() == 1){
-//        writer.println(word+" "+tags[0]);
-//        continue;
-//      }
       String maxTag = tags[0];
       double maxEmissionProb = Double.MIN_VALUE;
       for(String tag:tags){
-        if( e(word.toLowerCase(), tag) > maxEmissionProb){
+        if( e(word, tag) > maxEmissionProb){
           maxEmissionProb = e(word, tag);
           maxTag = tag;
         }
       }
-      writer.println(word+" "+maxTag);
+      resultsWriter.println(word+" "+maxTag);
     }
-    writer.close();
+    resultsWriter.close();
+  }
+
+  private static void printUsage(){
+    System.out.println("Expected 3 arguments \n java HMM <trainingFile> <testFile> <outputFile>");
   }
 
   public static void main(String[] args) throws IOException {
-    String filename = "./h1-p/gene_dev.p1.out";
-    HMM hmm = new HMM(filename);
+    args = new String[]{
+        "/home/dapurv5/MyCode/private-projects/nlangp-assignments/h1-p/gene-rare.counts",
+        "/home/dapurv5/MyCode/private-projects/nlangp-assignments/h1-p/gene.dev",
+        "/home/dapurv5/MyCode/private-projects/nlangp-assignments/h1-p/gene_dev.p1.out"
+    };
+
+    if(args.length != 3){
+      printUsage();
+    }
+
+    HMM hmm = new HMM(args[0], args[1], args[2]);
     hmm.train();
-
-    InputStream devIn = hmm.getClass().getResourceAsStream("gene.dev");
-    hmm.classify(devIn);
-    devIn.close();
+    hmm.classify();
   }
-
 }
