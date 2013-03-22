@@ -2,7 +2,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-public class MultiKeyMap<KEY1, KEY2, VALUE> {
+public class Map2K<KEY1, KEY2, VALUE> {
 
   private final Map<KEY1, Map<KEY2, VALUE>> m1 = new 
       HashMap<KEY1, Map<KEY2, VALUE>>();

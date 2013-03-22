@@ -12,27 +12,27 @@ import java.util.Map;
  * Solution for Part-1 of the assignment
  * Estimates the parameters for Trigram Hidden Markov model.</br>
  */
-public class HMM {
+public class SimpleTagger {
 
   private final static String WORDTAG = "WORDTAG";
   private final static String[] tags = {"O", "I-GENE"};
 
   //Readers , Writers to the training, test and the output file respectively
-  private final BufferedReader trainingReader;
+  private final BufferedReader corpusReader;
   private final BufferedReader testReader;
   private final PrintWriter    resultsWriter;
 
   //Data structures to hold count and probabilities
-  private final Map<String, Integer>                tagCnts       = new HashMap<String, Integer>();
-  private final MultiKeyMap<String, String, Integer>emissionCnts  = new MultiKeyMap<>();
-  private final MultiKeyMap<String, String, Double> emissionProbs = new MultiKeyMap<>();
-  private final List<String>                        allwords      = new LinkedList<String>();
+  private final Map<String, Integer>           tagCnts       = new HashMap<String, Integer>();
+  private final Map2K<String, String, Integer> emissionCnts  = new Map2K<String, String, Integer>();
+  private final Map2K<String, String, Double>  emissionProbs = new Map2K<String, String, Double>();
+  private final List<String>                   allwords      = new LinkedList<String>();
 
-  public HMM(String trainingFile, String testFile, String outputFile){
+  public SimpleTagger(String trainingFile, String testFile, String outputFile){
     try{
-      trainingReader = new BufferedReader(new FileReader(new File(trainingFile)));
-      testReader     = new BufferedReader(new FileReader(new File(testFile)));
-      resultsWriter  = new PrintWriter(new File(outputFile));
+      corpusReader  = new BufferedReader(new FileReader(new File(trainingFile)));
+      testReader    = new BufferedReader(new FileReader(new File(testFile)));
+      resultsWriter = new PrintWriter(new File(outputFile));
 
     }catch(FileNotFoundException e){
       System.err.println("COULD NOT FIND FILE ...");
@@ -43,7 +43,7 @@ public class HMM {
 
   private void readCounts() throws IOException{
     String line;
-    while((line = trainingReader.readLine()) != null){
+    while((line = corpusReader.readLine()) != null){
       String[] str = line.split(" ");
       if(str[1].equals(WORDTAG)){
         String word    = str[3];
@@ -57,7 +57,7 @@ public class HMM {
       }
     }
     computeEmissionProbabilities();
-    trainingReader.close();
+    corpusReader.close();
   }
 
   private void computeEmissionProbabilities(){
@@ -128,8 +128,8 @@ public class HMM {
       printUsage();
     }
 
-    HMM hmm = new HMM(args[0], args[1], args[2]);
-    hmm.train();
-    hmm.classify();
+    SimpleTagger simpleTagger = new SimpleTagger(args[0], args[1], args[2]);
+    simpleTagger.train();
+    simpleTagger.classify();
   }
 }
