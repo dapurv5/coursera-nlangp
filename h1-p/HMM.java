@@ -8,9 +8,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.commons.collections.map.MultiKeyMap;
-
 /**
  * Solution for Part-1 of the assignment
  * Estimates the parameters for Trigram Hidden Markov model.</br>
@@ -26,10 +23,10 @@ public class HMM {
   private final PrintWriter    resultsWriter;
 
   //Data structures to hold count and probabilities
-  private final Map<String, Integer> tagCnts       = new HashMap<String, Integer>();
-  private final MultiKeyMap          emissionCnts  = new MultiKeyMap();
-  private final MultiKeyMap          emissionProbs = new MultiKeyMap();
-  private final List<String>         allwords      = new LinkedList<String>();
+  private final Map<String, Integer>                tagCnts       = new HashMap<String, Integer>();
+  private final MultiKeyMap<String, String, Integer>emissionCnts  = new MultiKeyMap<>();
+  private final MultiKeyMap<String, String, Double> emissionProbs = new MultiKeyMap<>();
+  private final List<String>                        allwords      = new LinkedList<String>();
 
   public HMM(String trainingFile, String testFile, String outputFile){
     try{
@@ -69,8 +66,8 @@ public class HMM {
         if(emissionCnts.get(y, x) == null){
           emissionProbs.put(x, y, 0.0d);
         }else{
-          double cnt_yx = ((double)(int)emissionCnts.get(y, x));
-          double cnt_y  = ((double)(int)tagCnts.get(y)); 
+          double cnt_yx = emissionCnts.get(y, x);
+          double cnt_y  = tagCnts.get(y); 
           double prob = cnt_yx / cnt_y;
           emissionProbs.put(x, y, prob);
         }
@@ -85,10 +82,9 @@ public class HMM {
    */
   public double e(String x, String y){
     if (emissionProbs.containsKey(x, y)){
-      return (double)emissionProbs.get(x, y);
+      return emissionProbs.get(x, y);
     }
-    //x is a new word.
-    return (double)emissionProbs.get("_RARE_", y);
+    return emissionProbs.get("_RARE_", y);//x is a new word.
   }
 
   public void train() throws IOException{
