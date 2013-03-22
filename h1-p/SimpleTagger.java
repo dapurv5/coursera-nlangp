@@ -14,8 +14,8 @@ import java.util.Map;
  */
 public class SimpleTagger {
 
-  private final static String WORDTAG = "WORDTAG";
-  private final static String[] tags = {"O", "I-GENE"};
+  private final static String   WORDTAG = "WORDTAG";
+  private final static String[] tags    = {"O", "I-GENE"};
 
   //Readers , Writers to the training, test and the output file respectively
   private final BufferedReader corpusReader;

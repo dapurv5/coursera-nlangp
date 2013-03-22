@@ -7,13 +7,13 @@ public class Map2K<KEY1, KEY2, VALUE> {
   private final Map<KEY1, Map<KEY2, VALUE>> m1 = new 
       HashMap<KEY1, Map<KEY2, VALUE>>();
   
-  public void put(KEY1 k1, KEY2 k2, VALUE v){
+  public void put(KEY1 k1, KEY2 k2, VALUE val){
     Map<KEY2, VALUE> m2 = m1.get(k1);
     if(m2 == null){
       m2 = new HashMap<KEY2, VALUE>();
       m1.put(k1, m2);
     }
-    m2.put(k2, v);
+    m2.put(k2, val);
   }
 
   public VALUE get(KEY1 k1, KEY2 k2){
@@ -22,5 +22,18 @@ public class Map2K<KEY1, KEY2, VALUE> {
   
   public boolean containsKey(KEY1 k1, KEY2 k2){
     return m1.get(k1) != null && m1.get(k1).get(k2) != null;
-  }  
+  }
+  
+  @Override
+  public String toString(){
+    String str = "{";
+    for(KEY1 key1:m1.keySet()){
+      Map<KEY2, VALUE> m2 = m1.get(key1);
+      for(KEY2 key2:m2.keySet()){
+        str = str + "("+key1+","+key2+")=" +m2.get(key2) +", ";
+      }
+    }
+    str = str.substring(0, str.length()-2) + "}";
+    return str;
+  }
 }
