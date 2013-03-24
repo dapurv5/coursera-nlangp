@@ -12,7 +12,7 @@ import java.util.Map;
  * Solution for Part-1 of the assignment
  * Estimates the parameters for Trigram Hidden Markov model.</br>
  */
-public class SimpleTagger {
+public class BaselineTagger {
 
   private final static String   WORDTAG = "WORDTAG";
   private final static String[] tags    = {"O", "I-GENE"};
@@ -28,7 +28,7 @@ public class SimpleTagger {
   private final Map2K<String, String, Double>  emissionProbs = new Map2K<String, String, Double>();
   private final List<String>                   allwords      = new LinkedList<String>();
 
-  public SimpleTagger(String trainingFile, String testFile, String outputFile){
+  public BaselineTagger(String trainingFile, String testFile, String outputFile){
     try{
       corpusReader  = new BufferedReader(new FileReader(new File(trainingFile)));
       testReader    = new BufferedReader(new FileReader(new File(testFile)));
@@ -128,7 +128,7 @@ public class SimpleTagger {
       printUsage();
     }
 
-    SimpleTagger simpleTagger = new SimpleTagger(args[0], args[1], args[2]);
+    BaselineTagger simpleTagger = new BaselineTagger(args[0], args[1], args[2]);
     simpleTagger.train();
     simpleTagger.classify();
   }
