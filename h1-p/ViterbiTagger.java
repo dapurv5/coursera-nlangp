@@ -10,6 +10,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * Solution to part-2 of the assignment.
  */
@@ -19,6 +21,11 @@ public class ViterbiTagger {
   private final static String[] tags    = {"*", "O", "I-GENE", "STOP"};
   private final static int      START   = 0;
   private final static int      STOP    = 3; 
+
+  private final static String NUMERIC = "_NUMERIC_";
+  private final static String ALLCAPITALS = "_ALLCAPITALS_";
+  private final static String LASTCAPITAL = "_LASTCAPITAL";
+  private final static String RARE = "_RARE_";
 
   //Readers , Writers to the training, test and the output file respectively
   private final BufferedReader corpusReader;
@@ -128,7 +135,20 @@ public class ViterbiTagger {
     if (emissionProbs.containsKey(x, y)){
       return emissionProbs.get(x, y);
     }
-    return emissionProbs.get("_RARE_", y);//x is a new word.
+
+    //x is a new word. 
+    if(StringUtils.isNumeric(x)){
+      return emissionProbs.get(NUMERIC, y);
+    }
+    else if(StringUtils.isAllUpperCase(x)){
+      return emissionProbs.get(ALLCAPITALS, y);
+    }
+    else if(Character.isUpperCase(x.charAt(x.length()-1))){
+      return emissionProbs.get(LASTCAPITAL, y);
+    }
+    else{
+      return emissionProbs.get(RARE, y);
+    }
   }
 
   public double q(String s, String u, String v){
@@ -157,7 +177,7 @@ public class ViterbiTagger {
           max = 0;
           int w_max = 0;
           for(int w = 0; w < K; w++){
-//            System.out.print("q("+tags[v]+","+tags[w]+","+tags[u]+")="+q(v,w,u)+"  ");
+            //            System.out.print("q("+tags[v]+","+tags[w]+","+tags[u]+")="+q(v,w,u)+"  ");
             if(max < P[k-1][w][u] * q(v,w,u) * e(x[k-1], v)){
               max = P[k-1][w][u] * q(v,w,u) * e(x[k-1], v);
               w_max = w;
@@ -165,22 +185,22 @@ public class ViterbiTagger {
             }
           }
           P[k][u][v] = max;
-//          System.out.println();
-//          System.out.println("Double.min value = "+Double.MIN_VALUE);
-//          System.out.println("For k = "+k);
-//          System.out.println("u = "+tags[u]);
-//          System.out.println("v = "+tags[v]);
-//          System.out.println("w_max is = "+tags[w_max]);
-//          System.out.println("x["+(k-1)+"] is "+x[k-1]);
-//          System.out.println("e["+x[k-1]+" | "+tags[v]+"] = "+e(x[k-1], v)+"  and "+
-//              "e["+x[k-1]+" | "+tags[0]+"] = "+e(x[k-1], 0)+" ,"+
-//              "e["+x[k-1]+" | "+tags[1]+"] = "+e(x[k-1], 1)+", "+
-//              "e["+x[k-1]+" | "+tags[2]+"] = "+e(x[k-1], 2)+", "+
-//              "e["+x[k-1]+" | "+tags[3]+"] = "+e(x[k-1], 3)
-//              );
-//          System.out.println("P["+k+","+tags[u]+","+tags[v]+"] = "+P[k][u][v]);
-//          System.out.println("bp["+k+","+tags[u]+","+tags[v]+"] = "+tags[bp[k][u][v]]);
-//          System.out.println("\n");
+          //          System.out.println();
+          //          System.out.println("Double.min value = "+Double.MIN_VALUE);
+          //          System.out.println("For k = "+k);
+          //          System.out.println("u = "+tags[u]);
+          //          System.out.println("v = "+tags[v]);
+          //          System.out.println("w_max is = "+tags[w_max]);
+          //          System.out.println("x["+(k-1)+"] is "+x[k-1]);
+          //          System.out.println("e["+x[k-1]+" | "+tags[v]+"] = "+e(x[k-1], v)+"  and "+
+          //              "e["+x[k-1]+" | "+tags[0]+"] = "+e(x[k-1], 0)+" ,"+
+          //              "e["+x[k-1]+" | "+tags[1]+"] = "+e(x[k-1], 1)+", "+
+          //              "e["+x[k-1]+" | "+tags[2]+"] = "+e(x[k-1], 2)+", "+
+          //              "e["+x[k-1]+" | "+tags[3]+"] = "+e(x[k-1], 3)
+          //              );
+          //          System.out.println("P["+k+","+tags[u]+","+tags[v]+"] = "+P[k][u][v]);
+          //          System.out.println("bp["+k+","+tags[u]+","+tags[v]+"] = "+tags[bp[k][u][v]]);
+          //          System.out.println("\n");
         }
       }
     }
@@ -197,21 +217,21 @@ public class ViterbiTagger {
         }
       }
     }
-    
+
     for(int k = n-3; k>=0; k--){
-//      System.out.println("y["+k+"] = bp["+(k+3)+","+tags[yI[k+1]]+","+tags[yI[k+2]]+"] = "
-//    +tags[bp[k+3][yI[k+1]][yI[k+2]]]);
+      //      System.out.println("y["+k+"] = bp["+(k+3)+","+tags[yI[k+1]]+","+tags[yI[k+2]]+"] = "
+      //    +tags[bp[k+3][yI[k+1]][yI[k+2]]]);
       y_index[k] = bp[k+3][y_index[k+1]][y_index[k+2]];
     }
-    
+
     String[] y= new String[n];
     for(int i = 0; i < n; i++){
       y[i] = tags[y_index[i]];
     }
-//    System.out.println(Arrays.toString(y));
+    //    System.out.println(Arrays.toString(y));
     return y;
   }
-  
+
   private void classify() throws IOException{
     String line;
     List<String> sentence = new LinkedList<String>();
@@ -239,8 +259,8 @@ public class ViterbiTagger {
   public static void main(String[] args) throws IOException {
     args = new String[]{
         "/home/dapurv5/MyCode/private-projects/nlangp-assignments/h1-p/gene-rare.counts",
-        "/home/dapurv5/MyCode/private-projects/nlangp-assignments/h1-p/gene.test",
-        "/home/dapurv5/MyCode/private-projects/nlangp-assignments/h1-p/gene_test.p2.out"
+        "/home/dapurv5/MyCode/private-projects/nlangp-assignments/h1-p/gene.dev",
+        "/home/dapurv5/MyCode/private-projects/nlangp-assignments/h1-p/gene_dev.p3.out"
     };
 
     if(args.length != 3){

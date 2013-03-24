@@ -47,9 +47,9 @@ def rewrite_file(writer, filename):
 
 def usage():
     print """
-    python replace_infrequent.py [input_file] > [output_file]
+    python replace_infreq_naive.py [input_file] > [output_file]
     Read in a gene tagged training input file and produce another
-    gene tagged training input file where infrequence words have been
+    gene tagged training input file where infrequent words have been
     replaced by _RARE_
     """
     

@@ -120,7 +120,7 @@ public class BaselineTagger {
 
   public static void main(String[] args) throws IOException {
     args = new String[]{
-        "/home/dapurv5/MyCode/private-projects/nlangp-assignments/h1-p/gene-rare.counts",
+        "/home/dapurv5/MyCode/private-projects/nlangp-assignments/h1-p/gene-rare-naive.counts",
         "/home/dapurv5/MyCode/private-projects/nlangp-assignments/h1-p/gene.dev",
         "/home/dapurv5/MyCode/private-projects/nlangp-assignments/h1-p/gene_dev.p1.out"
     };
