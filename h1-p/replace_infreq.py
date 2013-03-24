@@ -17,7 +17,7 @@ _RARE_ if none of the above holds.
 THRESHOLD_FREQUENCY = 5
 NUMERIC = "_NUMERIC_"
 ALLCAPITALS = "_ALLCAPITALS_"
-LASTCAPITAL = "_LASTCAPITAL"
+LASTCAPITAL = "_LASTCAPITAL_"
 RARE = "_RARE_"
 
 def compute_frequencies(filename):
@@ -54,7 +54,7 @@ def rewrite_file(writer, filename):
 
 
 def get_symbol(word):
-    if word.isdigit():
+    if contains_digits(word):
         return NUMERIC
     elif word.isupper():
         return ALLCAPITALS
@@ -63,6 +63,8 @@ def get_symbol(word):
     else:
         return RARE
 
+def contains_digits(s):
+    return any(char.isdigit() for char in s)
 
 def usage():
     print """
