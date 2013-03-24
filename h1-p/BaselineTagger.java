@@ -110,6 +110,7 @@ public class BaselineTagger {
       }
       resultsWriter.println(word+" "+maxTag);
     }
+    testReader.close();
     resultsWriter.close();
   }
 

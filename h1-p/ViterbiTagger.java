@@ -140,24 +140,24 @@ public class ViterbiTagger {
   }
 
   private double e(String x, int y){
-    return emissionProbs.get(x, tags[y]);
+    return e(x, tags[y]);
   }
 
   public String[] viterbi(String[] x){
-    int[] yI = new int[x.length];
+    int[] y_index = new int[x.length];
     int K = tags.length;
     int n = x.length;
     double max = Double.MIN_VALUE;
     double[][][] P = new double[n+1][K][K];
     int[][][] bp   = new int[n+1][K][K]; //backpointers
-    P[0][0][0] = 1;
+    P[0][0][0] = 1.0d;
     for(int k = 1; k <= n; k++){
       for(int u = 0; u < K; u++){
         for(int v = 0; v < K; v++){
           max = 0;
           int w_max = 0;
           for(int w = 0; w < K; w++){
-            System.out.print("q("+tags[v]+","+tags[w]+","+tags[u]+")="+q(v,w,u)+"  ");
+//            System.out.print("q("+tags[v]+","+tags[w]+","+tags[u]+")="+q(v,w,u)+"  ");
             if(max < P[k-1][w][u] * q(v,w,u) * e(x[k-1], v)){
               max = P[k-1][w][u] * q(v,w,u) * e(x[k-1], v);
               w_max = w;
@@ -165,22 +165,22 @@ public class ViterbiTagger {
             }
           }
           P[k][u][v] = max;
-          System.out.println();
-          System.out.println("Double.min value = "+Double.MIN_VALUE);
-          System.out.println("For k = "+k);
-          System.out.println("u = "+tags[u]);
-          System.out.println("v = "+tags[v]);
-          System.out.println("w_max is = "+tags[w_max]);
-          System.out.println("x["+(k-1)+"] is "+x[k-1]);
-          System.out.println("e["+x[k-1]+" | "+tags[v]+"] = "+e(x[k-1], v)+"  and "+
-              "e["+x[k-1]+" | "+tags[0]+"] = "+e(x[k-1], 0)+" ,"+
-              "e["+x[k-1]+" | "+tags[1]+"] = "+e(x[k-1], 1)+", "+
-              "e["+x[k-1]+" | "+tags[2]+"] = "+e(x[k-1], 2)+", "+
-              "e["+x[k-1]+" | "+tags[3]+"] = "+e(x[k-1], 3)
-              );
-          System.out.println("P["+k+","+tags[u]+","+tags[v]+"] = "+P[k][u][v]);
-          System.out.println("bp["+k+","+tags[u]+","+tags[v]+"] = "+tags[bp[k][u][v]]);
-          System.out.println("\n");
+//          System.out.println();
+//          System.out.println("Double.min value = "+Double.MIN_VALUE);
+//          System.out.println("For k = "+k);
+//          System.out.println("u = "+tags[u]);
+//          System.out.println("v = "+tags[v]);
+//          System.out.println("w_max is = "+tags[w_max]);
+//          System.out.println("x["+(k-1)+"] is "+x[k-1]);
+//          System.out.println("e["+x[k-1]+" | "+tags[v]+"] = "+e(x[k-1], v)+"  and "+
+//              "e["+x[k-1]+" | "+tags[0]+"] = "+e(x[k-1], 0)+" ,"+
+//              "e["+x[k-1]+" | "+tags[1]+"] = "+e(x[k-1], 1)+", "+
+//              "e["+x[k-1]+" | "+tags[2]+"] = "+e(x[k-1], 2)+", "+
+//              "e["+x[k-1]+" | "+tags[3]+"] = "+e(x[k-1], 3)
+//              );
+//          System.out.println("P["+k+","+tags[u]+","+tags[v]+"] = "+P[k][u][v]);
+//          System.out.println("bp["+k+","+tags[u]+","+tags[v]+"] = "+tags[bp[k][u][v]]);
+//          System.out.println("\n");
         }
       }
     }
@@ -190,31 +190,46 @@ public class ViterbiTagger {
       for(int v = 0; v < K; v++){
         if(max < P[n][u][v]*q(STOP, u, v)){
           max = P[n][u][v]*q(STOP, u, v);
-          yI[n-1] = v;
+          y_index[n-1] = v;
           if(n-2 >= 0){
-            yI[n-2] = u; 
+            y_index[n-2] = u; 
           }
         }
       }
     }
     
     for(int k = n-3; k>=0; k--){
-      System.out.println("y["+k+"] = bp["+(k+3)+","+tags[yI[k+1]]+","+tags[yI[k+2]]+"] = "
-    +tags[bp[k+3][yI[k+1]][yI[k+2]]]);
-      yI[k] = bp[k+3][yI[k+1]][yI[k+2]];
+//      System.out.println("y["+k+"] = bp["+(k+3)+","+tags[yI[k+1]]+","+tags[yI[k+2]]+"] = "
+//    +tags[bp[k+3][yI[k+1]][yI[k+2]]]);
+      y_index[k] = bp[k+3][y_index[k+1]][y_index[k+2]];
     }
     
     String[] y= new String[n];
     for(int i = 0; i < n; i++){
-      y[i] = tags[yI[i]];
+      y[i] = tags[y_index[i]];
     }
-    System.out.println(Arrays.toString(y));
+//    System.out.println(Arrays.toString(y));
     return y;
   }
   
-  private void classify(){
-    String[] x = {"active"};
-    viterbi(x);
+  private void classify() throws IOException{
+    String line;
+    List<String> sentence = new LinkedList<String>();
+    while((line = testReader.readLine()) != null){
+      String word = line.trim();
+      if(word.equals("")){
+        String[] y = viterbi(sentence.toArray(new String[sentence.size()]));
+        for(int i = 0; i < sentence.size(); i++){
+          resultsWriter.println(sentence.get(i)+" "+y[i]);
+        }
+        resultsWriter.println();
+        sentence.clear();
+      } else{
+        sentence.add(word);
+      }
+    }
+    testReader.close();
+    resultsWriter.close();
   }
 
   private static void printUsage(){
@@ -224,8 +239,8 @@ public class ViterbiTagger {
   public static void main(String[] args) throws IOException {
     args = new String[]{
         "/home/dapurv5/MyCode/private-projects/nlangp-assignments/h1-p/gene-rare.counts",
-        "/home/dapurv5/MyCode/private-projects/nlangp-assignments/h1-p/gene.dev",
-        "/home/dapurv5/MyCode/private-projects/nlangp-assignments/h1-p/gene_dev.p2.out"
+        "/home/dapurv5/MyCode/private-projects/nlangp-assignments/h1-p/gene.test",
+        "/home/dapurv5/MyCode/private-projects/nlangp-assignments/h1-p/gene_test.p2.out"
     };
 
     if(args.length != 3){
