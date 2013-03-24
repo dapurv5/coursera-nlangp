@@ -137,7 +137,7 @@ public class ViterbiTagger {
     }
 
     //x is a new word. 
-    if(StringUtils.containsAny("0123456789", x)){
+    if(StringUtils.containsAny(x, "0123456789")){
       return emissionProbs.get(NUMERIC, y);
     }
     else if(StringUtils.isAllUpperCase(x)){
@@ -239,8 +239,8 @@ public class ViterbiTagger {
   public static void main(String[] args) throws IOException {
     args = new String[]{
         "/home/dapurv5/MyCode/private-projects/nlangp-assignments/h1-p/gene-rare.counts",
-        "/home/dapurv5/MyCode/private-projects/nlangp-assignments/h1-p/gene.test",
-        "/home/dapurv5/MyCode/private-projects/nlangp-assignments/h1-p/gene_test.p3.out"
+        "/home/dapurv5/MyCode/private-projects/nlangp-assignments/h1-p/gene.dev",
+        "/home/dapurv5/MyCode/private-projects/nlangp-assignments/h1-p/gene_dev.p3.out"
     };
 
     if(args.length != 3){
