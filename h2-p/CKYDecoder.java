@@ -12,8 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.collections.map.LinkedMap;
-
+import com.google.gson.Gson;
 
 /**
  * Solution to part-2 of the assignment.
@@ -134,14 +133,15 @@ public class CKYDecoder {
 
   public void parse() throws IOException{
     String line;
+    Gson gson = new Gson();
     while((line = testReader.readLine()) != null){
-      line = "What are geckos ?";
       String[] s = line.split(" ");
-      System.out.println(Arrays.toString(s));
       ArrayList<Object> tree = cky(s);
-      System.exit(0);
+      String json = gson.toJson(tree); 
+      resultsWriter.println(json);
     }
     testReader.close();
+    resultsWriter.close();
   }
 
 
@@ -206,23 +206,31 @@ public class CKYDecoder {
     return constructTree(str, 0, n-1, invIndexNonterminals.get("SBARQ"));
   }
 
-  private ArrayList<Object> constructTree(String[] s, int i, int j, int x){
-    int n = P.length;
+  private ArrayList<Object> constructTree(String[] str, int i, int j, int x){
     ArrayList<Object> tree = new ArrayList<>();
-    if(i == j){
-      ArrayList<Object> leaf = new ArrayList<>();
-      leaf.add(s[i]);
-      leaf.add(indexNonterminals.get(x));
-      return leaf;
+    Rule rule = bp_R[i][j][x];
+    if(rule.isUnaryRule()){
+      tree.add(rule.X);
+      tree.add(rule.Y);
+      return tree;
     }
+    int s = bp_s[i][j][x];
+    String X = indexNonterminals.get(x);
+    int Y = invIndexNonterminals.get(rule.Y);
+    int Z = invIndexNonterminals.get(rule.Z);
+    ArrayList<Object> left  = constructTree(str, i, s, Y);
+    ArrayList<Object> right = constructTree(str, s+1, j, Z);
+    tree.add(X);
+    tree.add(left);
+    tree.add(right);
     return tree;
   }
 
   public static void main(String[] args) throws IOException {
     args = new String[]{
         "/home/dapurv5/MyCode/coursera-projects/coursera-nlangp/h2-p/parse_train.counts.out",
-        "/home/dapurv5/MyCode/coursera-projects/coursera-nlangp/h2-p/parse_dev.dat",
-        "/home/dapurv5/MyCode/coursera-projects/coursera-nlangp/h2-p/parse_dev.out"
+        "/home/dapurv5/MyCode/coursera-projects/coursera-nlangp/h2-p/parse_test.dat",
+        "/home/dapurv5/MyCode/coursera-projects/coursera-nlangp/h2-p/parse_test.p2.out"
     };
 
     CKYDecoder cky = new CKYDecoder(args[0], args[1], args[2]);
