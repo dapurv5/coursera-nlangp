@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -52,9 +53,9 @@ public class CKYDecoder {
     try{
       trainingReader = new BufferedReader(new FileReader(trainFile));
       testReader     = new BufferedReader(new FileReader(testFile));
-      resultsWriter  = new PrintWriter(new File(outputFile));
+      resultsWriter  = new PrintWriter(new File(outputFile), "UTF-16");
 
-    } catch(FileNotFoundException e){
+    } catch(FileNotFoundException | UnsupportedEncodingException e){
       System.err.println("Could not find file");
       e.printStackTrace();
       throw new RuntimeException(e);
@@ -137,7 +138,7 @@ public class CKYDecoder {
     while((line = testReader.readLine()) != null){
       String[] s = line.split(" ");
       ArrayList<Object> tree = cky(s);
-      String json = gson.toJson(tree); 
+      String json = gson.toJson(tree);
       resultsWriter.println(json);
     }
     testReader.close();
@@ -202,7 +203,6 @@ public class CKYDecoder {
         }
       }
     }
-//    System.out.println(bp_R[1][n-1][invIndexNonterminals.get("SBARQ")]);
     return constructTree(str, 0, n-1, invIndexNonterminals.get("SBARQ"));
   }
 
