@@ -2,7 +2,10 @@
 <classpath>
 	<classpathentry kind="src" path="h1-p"/>
 	<classpathentry kind="src" path="h2-p"/>
+	<classpathentry kind="src" path="h3-p"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="/home/dapurv5/MyCode/coursera-projects/coursera-nlangp/lib/commons-lang3-3.1.jar"/>
+	<classpathentry kind="lib" path="/home/dapurv5/MyCode/coursera-projects/coursera-nlangp/lib/gson-2.2.2.jar"/>
+	<classpathentry kind="lib" path="/home/dapurv5/MyCode/coursera-projects/coursera-nlangp/lib/commons-collections-3.2.1.jar" sourcepath="/media/dapurv5/MyVolume/Libraries/Apache Libraries/Commons Collection/commons-collections-3.2.1-src.zip"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
