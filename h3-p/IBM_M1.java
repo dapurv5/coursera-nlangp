@@ -3,7 +3,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.RandomAccessFile;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.util.HashMap;
@@ -106,43 +105,54 @@ public class IBM_M1 {
         es = corpusEsReader.readLine();
       }
 
-//      System.out.println("putting "+e+" = "+candidateForeignWords.size());
       n.put(e, candidateForeignWords.size());
       candidateForeignWords.clear();
     }
+    
+    int nrOfUniqForeignWords = spanish_.size();
+    double t_f_NULL = 1.0/(double)(nrOfUniqForeignWords);
+    spanish_.clear();
+    english_.clear();
+    corpusEnReader.reset();
+    corpusEsReader.reset();
+    en = corpusEnReader.readLine();
+    es = corpusEsReader.readLine();
 
-    System.out.println("phase - 1 over");
     double t_fe = 0.0d;
-    for(String f : spanish_){
-      for(String e : english_){
-        t_fe = 1/n(e);
-        t.put(f, e, t_fe);
-
-        t_fe = 1.0/(double)(spanish_.size());
-        t.put(f, e, t_fe);
+    while(en != null){
+      Set<String> en_ = asSet(en);
+      Set<String> es_ = asSet(es);
+      for(String f : es_){
+        for(String e : en_){
+          t_fe = 1/n(e);
+          t.put(f, e, t_fe);
+        }
+        t.put(f, NULL, t_f_NULL);
       }
+      en = corpusEnReader.readLine();
+      es = corpusEsReader.readLine();      
     }
-    corpusEnReader.close();
-    corpusEsReader.close();
-    System.out.println(n.get("declare"));
-    System.out.println(t.get("declaro", "declare"));
   }
 
   public void train() throws IOException{
     initTranslationParameters();
+    corpusEnReader.reset();
+    corpusEsReader.reset();
     String english = corpusEnReader.readLine();
     String spanish = corpusEsReader.readLine();
-    while(english != null){
-      int m_k = spanish.length();
-      int l_k = english.length();
-      for(int i = 0; i < m_k; i++){
-        for(int j = 0; j < l_k; j++){
-
-        }
-      }
-      english = corpusEnReader.readLine();
-      spanish = corpusEsReader.readLine();
-    }
+//    while(english != null){
+//      int m_k = spanish.length();
+//      int l_k = english.length();
+//      for(int i = 0; i < m_k; i++){
+//        for(int j = 0; j < l_k; j++){
+//
+//        }
+//      }
+//      english = corpusEnReader.readLine();
+//      spanish = corpusEsReader.readLine();
+//    }
+    corpusEnReader.close();
+    corpusEsReader.close();
   }
 
 
