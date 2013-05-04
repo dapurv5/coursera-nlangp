@@ -7,6 +7,8 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -66,6 +68,14 @@ public class IBM_M1 {
       set.add(word);
     }
     return set;
+  }
+  
+  private List<String> asList(String line){
+    List<String> list = new LinkedList<>();
+    for(String word : line.split(" ")){
+      list.add(word);
+    }
+    return list;
   }
 
   private void initTranslationParameters() throws IOException{
@@ -134,25 +144,36 @@ public class IBM_M1 {
     }
   }
 
+  /**
+   * Computes the maximum likelihood parameters using the Expectation Maximization algorithm.
+   */
   public void train() throws IOException{
     initTranslationParameters();
     corpusEnReader.reset();
     corpusEsReader.reset();
-    String english = corpusEnReader.readLine();
-    String spanish = corpusEsReader.readLine();
-//    while(english != null){
-//      int m_k = spanish.length();
-//      int l_k = english.length();
-//      for(int i = 0; i < m_k; i++){
-//        for(int j = 0; j < l_k; j++){
-//
-//        }
-//      }
-//      english = corpusEnReader.readLine();
-//      spanish = corpusEsReader.readLine();
-//    }
-    corpusEnReader.close();
-    corpusEsReader.close();
+    int nrOfIterations = 5;
+    
+    for(int iter = 0; iter < 5; iter++){
+      String english = corpusEnReader.readLine();
+      String spanish = corpusEsReader.readLine();
+      while(english != null){
+        List<String> en = asList(english);
+        List<String> es = asList(spanish);
+        
+        int m_k = es.size();
+        int l_k = en.size();
+        for(int i = 0; i < m_k; i++){
+          for(int j = 0; j < l_k; j++){
+            double del_k_i_j = t(es.get(i), en.get(j));
+            //TODO: do stuff here.
+          }
+        }
+        english = corpusEnReader.readLine();
+        spanish = corpusEsReader.readLine();
+      }
+      corpusEnReader.close();
+      corpusEsReader.close();      
+    }
   }
 
 
