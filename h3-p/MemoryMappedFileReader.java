@@ -6,11 +6,12 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.io.Reader;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
-public class MemoryMappedFileReader {
+public class MemoryMappedFileReader{
   
   private final ByteBuffer byteBuffer;
   private ByteBufferReader bbr;
@@ -41,5 +42,9 @@ public class MemoryMappedFileReader {
   public void reset(){
     byteBuffer.reset();
     init();
+  }
+
+  public void close() throws IOException {
+    reader.close();
   }
 }

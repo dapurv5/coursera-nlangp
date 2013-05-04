@@ -20,8 +20,8 @@ public class IBM_M1 {
   private final Map2K<String, String, Double> t;
   private final Map<String, Integer> n;
 
-  private RandomAccessFile corpusEnReader;
-  private RandomAccessFile corpusEsReader;
+  private MemoryMappedFileReader corpusEnReader;
+  private MemoryMappedFileReader corpusEsReader;
   private BufferedReader testEnReader;
   private BufferedReader testEsReader;
   private PrintWriter    resultsWriter;
@@ -41,8 +41,8 @@ public class IBM_M1 {
   private void setupIO(String corpusEnFile, String corpusEsFile, String testEnFile,
       String testEsFile, String outputFile){
     try {
-//      corpusEnReader = new RandomAccessFile(corpusEnFile, "r");
-//      corpusEsReader = new RandomAccessFile(corpusEsFile, "r");
+      corpusEnReader = new MemoryMappedFileReader(corpusEnFile);
+      corpusEsReader = new MemoryMappedFileReader(corpusEsFile);
       testEnReader = new BufferedReader(new FileReader(testEnFile));
       testEsReader = new BufferedReader(new FileReader(testEsFile));
       resultsWriter = new PrintWriter(new File(outputFile), "UTF-8");
@@ -70,11 +70,6 @@ public class IBM_M1 {
   }
 
   private void initTranslationParameters() throws IOException{
-    long enStartPtr = -1;
-    long esStartPtr = -1;
-    enStartPtr = corpusEnReader.getFilePointer();
-    esStartPtr = corpusEsReader.getFilePointer();
-
     String en = corpusEnReader.readLine();
     String es = corpusEsReader.readLine();
     Set<String> english_ = new HashSet<>(); //all unique English words
@@ -96,8 +91,8 @@ public class IBM_M1 {
     System.out.println(spanish_.size());
 
     for(String e : english_){
-      corpusEnReader.seek(enStartPtr);
-      corpusEsReader.seek(esStartPtr);
+      corpusEnReader.reset();
+      corpusEsReader.reset();
       en = corpusEnReader.readLine();
       es = corpusEsReader.readLine();
 
@@ -111,7 +106,7 @@ public class IBM_M1 {
         es = corpusEsReader.readLine();
       }
 
-      System.out.println("putting "+e+" = "+candidateForeignWords.size());
+//      System.out.println("putting "+e+" = "+candidateForeignWords.size());
       n.put(e, candidateForeignWords.size());
       candidateForeignWords.clear();
     }
