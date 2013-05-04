@@ -95,10 +95,6 @@ public class IBM_M1 {
       es = corpusEsReader.readLine();
     }
     
-    System.out.println("phase - 0 over");
-    System.out.println(english_.size());
-    System.out.println(spanish_.size());
-
     for(String e : english_){
       corpusEnReader.reset();
       corpusEsReader.reset();
