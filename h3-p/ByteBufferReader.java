@@ -1,8 +1,6 @@
 /**
  *  Copyright (c) 2013 Apurv Verma
  */
-
-
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;

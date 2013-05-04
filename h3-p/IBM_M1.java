@@ -4,8 +4,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.util.HashMap;
@@ -43,17 +41,12 @@ public class IBM_M1 {
   private void setupIO(String corpusEnFile, String corpusEsFile, String testEnFile,
       String testEsFile, String outputFile){
     try {
-      corpusEnReader = new RandomAccessFile(corpusEnFile, "r");
-      corpusEsReader = new RandomAccessFile(corpusEsFile, "r");
+//      corpusEnReader = new RandomAccessFile(corpusEnFile, "r");
+//      corpusEsReader = new RandomAccessFile(corpusEsFile, "r");
       testEnReader = new BufferedReader(new FileReader(testEnFile));
       testEsReader = new BufferedReader(new FileReader(testEsFile));
       resultsWriter = new PrintWriter(new File(outputFile), "UTF-8");
       
-      MappedByteBuffer corpusEnReaderFast = corpusEnReader.getChannel().map(
-          FileChannel.MapMode.READ_ONLY, 0, corpusEnReader.length());
-      String data = decoder.decode(corpusEnReaderFast.asReadOnlyBuffer()).toString();
-      System.out.println(data);
-      System.out.println(corpusEnReader.length());
     } catch (IOException e) {
       System.err.println("Could not setup IO");
       e.printStackTrace();
