@@ -53,7 +53,7 @@ public class CKYDecoder {
     try{
       trainingReader = new BufferedReader(new FileReader(trainFile));
       testReader     = new BufferedReader(new FileReader(testFile));
-      resultsWriter  = new PrintWriter(new File(outputFile), "UTF-16");
+      resultsWriter  = new PrintWriter(new File(outputFile), "UTF-8");
 
     } catch(FileNotFoundException | UnsupportedEncodingException e){
       System.err.println("Could not find file");

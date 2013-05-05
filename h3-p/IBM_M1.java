@@ -14,12 +14,18 @@ import java.util.Set;
 
 public class IBM_M1 {
 
+  private final static String SEPARATOR = "_";
   private final static String NULL = "NULL";
   private final static Charset charset = Charset.forName("UTF-8");
   private final static CharsetDecoder decoder = charset.newDecoder();
   
   private final Map2K<String, String, Double> t;
   private final Map<String, Integer> n;
+  
+  private final Map<String, Double> c_ef;
+  private final Map<String, Double> c_e;
+  private final Map<String, Double> c_jilm;
+  private final Map<String, Double> c_ilm;
 
   private MemoryMappedFileReader corpusEnReader;
   private MemoryMappedFileReader corpusEsReader;
@@ -34,6 +40,10 @@ public class IBM_M1 {
       String testEsFile, String outputFile){
     t = new Map2K<>();
     n = new HashMap<>();
+    c_ef = new HashMap<>();
+    c_e = new HashMap<>();
+    c_jilm = new HashMap<>();
+    c_ilm = new HashMap<>();
     this.corpusEnFile = corpusEnFile;
     this.corpusEsFile = corpusEsFile;
     setupIO(corpusEnFile, corpusEsFile, testEnFile, testEsFile, outputFile);
@@ -53,7 +63,70 @@ public class IBM_M1 {
       e.printStackTrace();
     }
   }
-
+  
+  
+  
+  private String getKey_ef(String e, String f){
+    return e+SEPARATOR+f;
+  }
+  
+  private double c_ef(String e, String f){
+    if(c_ef.get(getKey_ef(e, f)) == null){
+      c_ef(e, f, 0.0);
+    }
+    return c_ef.get(getKey_ef(e, f));
+  }
+  
+  private void c_ef(String e, String f, double val){
+    c_ef.put(getKey_ef(e, f), val);
+  }
+  
+  
+  
+  private String getKey_jilm(int j, int i, int l, int m){
+    return j+SEPARATOR+i+SEPARATOR+l+SEPARATOR+m;
+  }
+  
+  private double c_jilm(int j, int i, int l, int m){
+    if(c_jilm.get(getKey_jilm(j, i, l, m)) == null){
+      c_jilm(j, i, l, m, 0.0);
+    }
+    return c_jilm.get(getKey_jilm(j, i, l, m));
+  }
+  
+  private void c_jilm(int j, int i, int l, int m, double val){
+    c_jilm.put(getKey_jilm(j, i, l, m),  val);
+  }
+  
+  
+  
+  private String getKey_ilm(int i, int l, int m){
+    return i+SEPARATOR+l+SEPARATOR+m;
+  }
+  
+  private double c_ilm(int i, int l, int m){
+    if(c_ilm.get(getKey_ilm(i, l, m)) == null){
+      c_ilm(i, l, m, 0.0);
+    }
+    return c_ilm.get(getKey_ilm(i, l, m));
+  }
+  
+  private void c_ilm(int i, int l, int m, double val){
+    c_ilm.put(getKey_ilm(i, l, m), val);
+  }
+  
+  
+  private double c_e(String e){
+    if(c_e.get(e) == null){
+      c_e(e, 0);
+    }
+    return c_e.get(e);
+  }
+  
+  private void c_e(String e, double val){
+    c_e.put(e, val);
+  }
+  
   private double t(String f, String e){
     return (t.get(f, e) == null) ? 0 : t.get(f, e);
   }
@@ -145,31 +218,44 @@ public class IBM_M1 {
    */
   public void train() throws IOException{
     initTranslationParameters();
-    corpusEnReader.reset();
-    corpusEsReader.reset();
     int nrOfIterations = 5;
     
-    for(int iter = 0; iter < 5; iter++){
+    for(int iter = 0; iter < nrOfIterations; iter++){
+      corpusEnReader.reset();
+      corpusEsReader.reset();
       String english = corpusEnReader.readLine();
       String spanish = corpusEsReader.readLine();
       while(english != null){
         List<String> en = asList(english);
         List<String> es = asList(spanish);
         
-        int m_k = es.size();
-        int l_k = en.size();
-        for(int i = 0; i < m_k; i++){
-          for(int j = 0; j < l_k; j++){
-            double del_k_i_j = t(es.get(i), en.get(j));
-            //TODO: do stuff here.
+        int m = es.size();
+        int l = en.size();
+        for(int i = 0; i < m; i++){
+          for(int j = 0; j < l; j++){
+            
+            String e = en.get(j);
+            String f = es.get(i);
+            
+            double num = t(f, e);
+            
+            double denom = 0;
+            for(int j_ = 0; j_ < l; j_++){
+              denom += t(es.get(i), en.get(j));
+            }
+            double del_k_i_j = num/denom;
+            c_ef(e, f, c_ef(e, f) + del_k_i_j);                 //c(e,f) = c(e,f) + del(k,i,j)
+            c_e(e, c_e(e) + del_k_i_j);                         //c(e) = c(e) + del(k,i,j)
+            c_jilm(j, i, l, m, c_jilm(j, i, l, m) + del_k_i_j); //c(j | i,l,m) = c(j | i,l,m) + del(k,i,j)
+            c_ilm(i, l, m, c_ilm(i, l, m) + del_k_i_j);         //c(i, l, m) = c(i, l, m) + del(k, i, j)
           }
         }
         english = corpusEnReader.readLine();
         spanish = corpusEsReader.readLine();
       }
-      corpusEnReader.close();
-      corpusEsReader.close();      
     }
+    corpusEnReader.close();
+    corpusEsReader.close();
   }
 
 
