@@ -241,7 +241,7 @@ public class IBM_M1 {
             
             double denom = 0;
             for(int j_ = 0; j_ < l; j_++){
-              denom += t(es.get(i), en.get(j));
+              denom += t(es.get(i), en.get(j_));
             }
             double del_k_i_j = num/denom;
             c_ef(e, f, c_ef(e, f) + del_k_i_j);                 //c(e,f) = c(e,f) + del(k,i,j)
@@ -253,7 +253,19 @@ public class IBM_M1 {
         english = corpusEnReader.readLine();
         spanish = corpusEsReader.readLine();
       }
+      //Update t's and q's here.
     }
+    System.out.println(c_ef("cyprus", "en"));
+    System.out.println(c_ef("cyprus", "han"));
+    System.out.println(c_ef("cyprus", "la"));
+    System.out.println(c_ef("cyprus", "chipre"));
+    System.out.println(c_ef("cyprus", "pedido"));
+    System.out.println(c_ef("cyprus", "su"));
+    System.out.println(c_ef("cyprus", "."));
+    System.out.println(c_ef("cyprus", "malta"));
+    System.out.println(c_ef("cyprus", "y"));
+    System.out.println(c_ef("cyprus", "comunidad"));
+    System.out.println(c_ef("cyprus", "ingreso"));
     corpusEnReader.close();
     corpusEsReader.close();
   }
