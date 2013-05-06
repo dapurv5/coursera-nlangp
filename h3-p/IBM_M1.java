@@ -21,6 +21,7 @@ public class IBM_M1 {
   
   private final Map2K<String, String, Double> t;
   private final Map<String, Integer> n;
+  private final Map<String, Double> q;
   
   private final Map<String, Double> c_ef;
   private final Map<String, Double> c_e;
@@ -40,6 +41,7 @@ public class IBM_M1 {
       String testEsFile, String outputFile){
     t = new Map2K<>();
     n = new HashMap<>();
+    q = new HashMap<>();
     c_ef = new HashMap<>();
     c_e = new HashMap<>();
     c_jilm = new HashMap<>();
@@ -65,19 +67,34 @@ public class IBM_M1 {
   }
   
   
+  private String getKey_q(int j, int i, int l, int m){
+    return j+SEPARATOR+i+SEPARATOR+l+SEPARATOR+m;
+  }
+  
+  private double q(int j, int i, int l, int m){
+    if(q.get(getKey_q(j, i, l, m)) == null){
+      q(j, i, l, m, 0.0);
+    }
+    return q.get(getKey_q(j, i, l, m));
+  }
+  
+  private void q(int j, int i, int l, int m, double val){
+    q.put(getKey_q(j, i, l, m), val);
+  }
+  
   
   private String getKey_ef(String e, String f){
     return e+SEPARATOR+f;
   }
   
-  private double c_ef(String e, String f){
+  private double c(String e, String f){
     if(c_ef.get(getKey_ef(e, f)) == null){
-      c_ef(e, f, 0.0);
+      c(e, f, 0.0);
     }
     return c_ef.get(getKey_ef(e, f));
   }
   
-  private void c_ef(String e, String f, double val){
+  private void c(String e, String f, double val){
     c_ef.put(getKey_ef(e, f), val);
   }
   
@@ -87,14 +104,14 @@ public class IBM_M1 {
     return j+SEPARATOR+i+SEPARATOR+l+SEPARATOR+m;
   }
   
-  private double c_jilm(int j, int i, int l, int m){
+  private double c(int j, int i, int l, int m){
     if(c_jilm.get(getKey_jilm(j, i, l, m)) == null){
-      c_jilm(j, i, l, m, 0.0);
+      c(j, i, l, m, 0.0);
     }
     return c_jilm.get(getKey_jilm(j, i, l, m));
   }
   
-  private void c_jilm(int j, int i, int l, int m, double val){
+  private void c(int j, int i, int l, int m, double val){
     c_jilm.put(getKey_jilm(j, i, l, m),  val);
   }
   
@@ -104,26 +121,26 @@ public class IBM_M1 {
     return i+SEPARATOR+l+SEPARATOR+m;
   }
   
-  private double c_ilm(int i, int l, int m){
+  private double c(int i, int l, int m){
     if(c_ilm.get(getKey_ilm(i, l, m)) == null){
-      c_ilm(i, l, m, 0.0);
+      c(i, l, m, 0.0);
     }
     return c_ilm.get(getKey_ilm(i, l, m));
   }
   
-  private void c_ilm(int i, int l, int m, double val){
+  private void c(int i, int l, int m, double val){
     c_ilm.put(getKey_ilm(i, l, m), val);
   }
   
   
-  private double c_e(String e){
+  private double c(String e){
     if(c_e.get(e) == null){
-      c_e(e, 0);
+      c(e, 0);
     }
     return c_e.get(e);
   }
   
-  private void c_e(String e, double val){
+  private void c(String e, double val){
     c_e.put(e, val);
   }
   
@@ -244,28 +261,53 @@ public class IBM_M1 {
               denom += t(es.get(i), en.get(j_));
             }
             double del_k_i_j = num/denom;
-            c_ef(e, f, c_ef(e, f) + del_k_i_j);                 //c(e,f) = c(e,f) + del(k,i,j)
-            c_e(e, c_e(e) + del_k_i_j);                         //c(e) = c(e) + del(k,i,j)
-            c_jilm(j, i, l, m, c_jilm(j, i, l, m) + del_k_i_j); //c(j | i,l,m) = c(j | i,l,m) + del(k,i,j)
-            c_ilm(i, l, m, c_ilm(i, l, m) + del_k_i_j);         //c(i, l, m) = c(i, l, m) + del(k, i, j)
+            c(e, f, c(e, f) + del_k_i_j);                 //c(e,f) = c(e,f) + del(k,i,j)
+            c(e, c(e) + del_k_i_j);                       //c(e) = c(e) + del(k,i,j)
+            c(j, i, l, m, c(j, i, l, m) + del_k_i_j);     //c(j | i,l,m) = c(j | i,l,m) + del(k,i,j)
+            c(i, l, m, c(i, l, m) + del_k_i_j);           //c(i, l, m) = c(i, l, m) + del(k, i, j)
           }
         }
         english = corpusEnReader.readLine();
         spanish = corpusEsReader.readLine();
       }
-      //Update t's and q's here.
+      
+      //Update t's and q's
+      corpusEnReader.reset();
+      corpusEsReader.reset();
+      String en = corpusEnReader.readLine();
+      String es = corpusEsReader.readLine();
+      double t_fe = 0.0d;
+      while(en != null){
+        List<String> en_ = asList(en);
+        List<String> es_ = asList(es);
+        int m = es_.size();
+        int l = en_.size();
+        
+        for(int i = 0; i < m; i++){
+          for(int j = 0; j < l; j++){
+            String e = en_.get(j);
+            String f = es_.get(i);
+            t_fe = c(e, f)/c(e);
+            t.put(f, e, t_fe);
+            q(j,i,l,m,  c(j, i, l, m)/c(i, l, m));
+          }
+        }
+        en = corpusEnReader.readLine();
+        es = corpusEsReader.readLine();        
+      }
     }
-    System.out.println(c_ef("cyprus", "en"));
-    System.out.println(c_ef("cyprus", "han"));
-    System.out.println(c_ef("cyprus", "la"));
-    System.out.println(c_ef("cyprus", "chipre"));
-    System.out.println(c_ef("cyprus", "pedido"));
-    System.out.println(c_ef("cyprus", "su"));
-    System.out.println(c_ef("cyprus", "."));
-    System.out.println(c_ef("cyprus", "malta"));
-    System.out.println(c_ef("cyprus", "y"));
-    System.out.println(c_ef("cyprus", "comunidad"));
-    System.out.println(c_ef("cyprus", "ingreso"));
+    
+    System.out.println(t("en", "cyprus"));
+    System.out.println(t("han", "cyprus"));
+    System.out.println(t("la", "cyprus"));
+    System.out.println(t("chipre", "cyprus"));
+    System.out.println(t("pedido", "cyprus"));
+    System.out.println(t("su", "cyprus"));
+    System.out.println(t(".", "cyprus"));
+    System.out.println(t("malta", "cyprus"));
+    System.out.println(t("y", "cyprus"));
+    System.out.println(t("comunidad", "cyprus"));
+    System.out.println(t("ingreso", "cyprus"));
     corpusEnReader.close();
     corpusEsReader.close();
   }
