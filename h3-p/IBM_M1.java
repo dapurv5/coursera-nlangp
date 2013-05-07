@@ -11,18 +11,17 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 public class IBM_M1 {
 
   private final static String SEPARATOR = "_";
   private final static String NULL = "NULL";
-  private final static Charset charset = Charset.forName("UTF-8");
-  private final static CharsetDecoder decoder = charset.newDecoder();
-  
+
   private final Map2K<String, String, Double> t;
-  private final Map<String, Integer> n;
+  private final Map<String, Double> n;
   private final Map<String, Double> q;
-  
+
   private final Map<String, Double> c_ef;
   private final Map<String, Double> c_e;
   private final Map<String, Double> c_jilm;
@@ -40,12 +39,12 @@ public class IBM_M1 {
   public IBM_M1(String corpusEnFile, String corpusEsFile, String testEnFile,
       String testEsFile, String outputFile){
     t = new Map2K<>();
-    n = new HashMap<>();
+    n = new TreeMap<>();
     q = new HashMap<>();
     c_ef = new HashMap<>();
     c_e = new HashMap<>();
     c_jilm = new HashMap<>();
-    c_ilm = new HashMap<>();
+    c_ilm = new HashMap<>();    
     this.corpusEnFile = corpusEnFile;
     this.corpusEsFile = corpusEsFile;
     setupIO(corpusEnFile, corpusEsFile, testEnFile, testEsFile, outputFile);
@@ -59,97 +58,105 @@ public class IBM_M1 {
       testEnReader = new BufferedReader(new FileReader(testEnFile));
       testEsReader = new BufferedReader(new FileReader(testEsFile));
       resultsWriter = new PrintWriter(new File(outputFile), "UTF-8");
-      
+
     } catch (IOException e) {
       System.err.println("Could not setup IO");
       e.printStackTrace();
     }
   }
-  
-  
+
+
+  private void resetCounts(){
+    c_ef.clear();
+    c_e.clear();
+    c_jilm.clear();
+    c_ilm.clear();
+  }
+
+
   private String getKey_q(int j, int i, int l, int m){
     return j+SEPARATOR+i+SEPARATOR+l+SEPARATOR+m;
   }
-  
+
   private double q(int j, int i, int l, int m){
     if(q.get(getKey_q(j, i, l, m)) == null){
       q(j, i, l, m, 0.0);
     }
     return q.get(getKey_q(j, i, l, m));
   }
-  
+
   private void q(int j, int i, int l, int m, double val){
     q.put(getKey_q(j, i, l, m), val);
   }
-  
-  
+
+
   private String getKey_ef(String e, String f){
     return e+SEPARATOR+f;
   }
-  
+
   private double c(String e, String f){
     if(c_ef.get(getKey_ef(e, f)) == null){
       c(e, f, 0.0);
     }
     return c_ef.get(getKey_ef(e, f));
   }
-  
+
   private void c(String e, String f, double val){
     c_ef.put(getKey_ef(e, f), val);
   }
-  
-  
-  
+
+
+
   private String getKey_jilm(int j, int i, int l, int m){
     return j+SEPARATOR+i+SEPARATOR+l+SEPARATOR+m;
   }
-  
+
   private double c(int j, int i, int l, int m){
     if(c_jilm.get(getKey_jilm(j, i, l, m)) == null){
       c(j, i, l, m, 0.0);
     }
     return c_jilm.get(getKey_jilm(j, i, l, m));
   }
-  
+
   private void c(int j, int i, int l, int m, double val){
     c_jilm.put(getKey_jilm(j, i, l, m),  val);
   }
-  
-  
-  
+
+
+
   private String getKey_ilm(int i, int l, int m){
     return i+SEPARATOR+l+SEPARATOR+m;
   }
-  
+
   private double c(int i, int l, int m){
     if(c_ilm.get(getKey_ilm(i, l, m)) == null){
       c(i, l, m, 0.0);
     }
     return c_ilm.get(getKey_ilm(i, l, m));
   }
-  
+
   private void c(int i, int l, int m, double val){
     c_ilm.put(getKey_ilm(i, l, m), val);
   }
-  
-  
+
+
   private double c(String e){
     if(c_e.get(e) == null){
-      c(e, 0);
+      c(e, 0.0);
     }
     return c_e.get(e);
   }
-  
+
   private void c(String e, double val){
     c_e.put(e, val);
   }
-  
+
   private double t(String f, String e){
-    return (t.get(f, e) == null) ? 0 : t.get(f, e);
+    return (t.get(f, e) == null) ? 0.0 : t.get(f, e);
   }
 
   private double n(String e){
-    return (n.get(e) == null) ? 0 : n.get(e);
+    return (n.get(e) == null) ? 0.0 : n.get(e);
   }
 
   private Set<String> asSet(String line){
@@ -159,7 +166,7 @@ public class IBM_M1 {
     }
     return set;
   }
-  
+
   private List<String> asList(String line){
     List<String> list = new LinkedList<>();
     for(String word : line.split(" ")){
@@ -184,7 +191,7 @@ public class IBM_M1 {
       en = corpusEnReader.readLine();
       es = corpusEsReader.readLine();
     }
-    
+
     for(String e : english_){
       corpusEnReader.reset();
       corpusEsReader.reset();
@@ -201,14 +208,14 @@ public class IBM_M1 {
         es = corpusEsReader.readLine();
       }
 
-      n.put(e, candidateForeignWords.size());
+      n.put(e, (double)candidateForeignWords.size());
       candidateForeignWords.clear();
     }
     
     int nrOfUniqForeignWords = spanish_.size();
-    double t_f_NULL = 1.0/(double)(nrOfUniqForeignWords);
     spanish_.clear();
     english_.clear();
+    double t_f_NULL = 1.0/(double)(nrOfUniqForeignWords);
     corpusEnReader.reset();
     corpusEsReader.reset();
     en = corpusEnReader.readLine();
@@ -220,14 +227,17 @@ public class IBM_M1 {
       Set<String> es_ = asSet(es);
       for(String f : es_){
         for(String e : en_){
-          t_fe = 1/n(e);
-          t.put(f, e, t_fe);
+          if(t.get(f, e) == null){
+            t_fe = 1.0/n(e);
+            t.put(f, e, t_fe);
+          }
         }
         t.put(f, NULL, t_f_NULL);
       }
       en = corpusEnReader.readLine();
       es = corpusEsReader.readLine();      
     }
+    n.clear(); //free up memory
   }
 
   /**
@@ -236,7 +246,7 @@ public class IBM_M1 {
   public void train() throws IOException{
     initTranslationParameters();
     int nrOfIterations = 5;
-    
+
     for(int iter = 0; iter < nrOfIterations; iter++){
       corpusEnReader.reset();
       corpusEsReader.reset();
@@ -245,32 +255,34 @@ public class IBM_M1 {
       while(english != null){
         List<String> en = asList(english);
         List<String> es = asList(spanish);
-        
+        en.add(0, NULL);
+
         int m = es.size();
         int l = en.size();
         for(int i = 0; i < m; i++){
           for(int j = 0; j < l; j++){
-            
+
             String e = en.get(j);
             String f = es.get(i);
-            
+
             double num = t(f, e);
-            
+
             double denom = 0;
             for(int j_ = 0; j_ < l; j_++){
-              denom += t(es.get(i), en.get(j_));
+              String e_ = en.get(j_);
+              denom += t(f, e_);
             }
-            double del_k_i_j = num/denom;
-            c(e, f, c(e, f) + del_k_i_j);                 //c(e,f) = c(e,f) + del(k,i,j)
-            c(e, c(e) + del_k_i_j);                       //c(e) = c(e) + del(k,i,j)
-            c(j, i, l, m, c(j, i, l, m) + del_k_i_j);     //c(j | i,l,m) = c(j | i,l,m) + del(k,i,j)
-            c(i, l, m, c(i, l, m) + del_k_i_j);           //c(i, l, m) = c(i, l, m) + del(k, i, j)
+            double del = num/denom;
+            c(e, f, c(e, f) + del);                 //c(e,f) = c(e,f) + del(k,i,j)
+            c(e, c(e) + del);                       //c(e) = c(e) + del(k,i,j)
+            c(j, i, l, m, c(j, i, l, m) + del);     //c(j | i,l,m) = c(j | i,l,m) + del(k,i,j)
+            c(i, l, m, c(i, l, m) + del);           //c(i, l, m) = c(i, l, m) + del(k, i, j)
           }
         }
         english = corpusEnReader.readLine();
         spanish = corpusEsReader.readLine();
       }
-      
+
       //Update t's and q's
       corpusEnReader.reset();
       corpusEsReader.reset();
@@ -280,9 +292,11 @@ public class IBM_M1 {
       while(en != null){
         List<String> en_ = asList(en);
         List<String> es_ = asList(es);
+        en_.add(0, NULL);
+
         int m = es_.size();
         int l = en_.size();
-        
+
         for(int i = 0; i < m; i++){
           for(int j = 0; j < l; j++){
             String e = en_.get(j);
@@ -293,21 +307,10 @@ public class IBM_M1 {
           }
         }
         en = corpusEnReader.readLine();
-        es = corpusEsReader.readLine();        
+        es = corpusEsReader.readLine();
       }
+      resetCounts();
     }
-    
-    System.out.println(t("en", "cyprus"));
-    System.out.println(t("han", "cyprus"));
-    System.out.println(t("la", "cyprus"));
-    System.out.println(t("chipre", "cyprus"));
-    System.out.println(t("pedido", "cyprus"));
-    System.out.println(t("su", "cyprus"));
-    System.out.println(t(".", "cyprus"));
-    System.out.println(t("malta", "cyprus"));
-    System.out.println(t("y", "cyprus"));
-    System.out.println(t("comunidad", "cyprus"));
-    System.out.println(t("ingreso", "cyprus"));
     corpusEnReader.close();
     corpusEsReader.close();
   }
