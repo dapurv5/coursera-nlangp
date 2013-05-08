@@ -3,8 +3,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetDecoder;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
