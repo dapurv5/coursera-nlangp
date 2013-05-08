@@ -314,18 +314,57 @@ public class IBM_M1 {
     corpusEnReader.close();
     corpusEsReader.close();
   }
+  
+  public void align() throws IOException{
+    String english = testEnReader.readLine();
+    String spanish = testEsReader.readLine();
+    int cnt = 1;
+    while(english != null){
+      List<String> en = asList(english);
+      List<String> es = asList(spanish);
+      en.add(0, NULL);
+      int m = es.size();
+      int l = en.size();
+      for(int i = 0; i < m; i++){
+        String f = es.get(i);
+        int a_i = argmax_e(en, f);
+        if(a_i == 0){
+          continue; //NULL alignments are skipped
+        }
+        resultsWriter.println(cnt+" "+a_i+" "+(i+1));
+      }
+      english = testEnReader.readLine();
+      spanish = testEsReader.readLine();
+      cnt++;
+    }
+    testEnReader.close();
+    testEsReader.close();
+    resultsWriter.close();
+  }
 
+  private int argmax_e(List<String> en, String f){
+    int jMax = 0;
+    double tMax = t(f, en.get(0));
+    for(int j = 0; j < en.size(); j++){
+      if(tMax < t(f, en.get(j))){
+        tMax = t(f, en.get(j));
+        jMax = j;
+      }
+    }
+    return jMax;
+  }
 
   public static void main(String[] args) throws IOException {
     args = new String[]{
         "/home/dapurv5/MyCode/coursera-projects/coursera-nlangp/h3-p/corpus.en",
         "/home/dapurv5/MyCode/coursera-projects/coursera-nlangp/h3-p/corpus.es",
-        "/home/dapurv5/MyCode/coursera-projects/coursera-nlangp/h3-p/dev.en",
-        "/home/dapurv5/MyCode/coursera-projects/coursera-nlangp/h3-p/dev.es",
-        "/home/dapurv5/MyCode/coursera-projects/coursera-nlangp/h3-p/dev.out"
+        "/home/dapurv5/MyCode/coursera-projects/coursera-nlangp/h3-p/test.en",
+        "/home/dapurv5/MyCode/coursera-projects/coursera-nlangp/h3-p/test.es",
+        "/home/dapurv5/MyCode/coursera-projects/coursera-nlangp/h3-p/alignment_test.p1.out"
     };
 
     IBM_M1 ibmm1 = new IBM_M1(args[0], args[1], args[2], args[3], args[4]);
     ibmm1.train();
+    ibmm1.align();
   }
 }
